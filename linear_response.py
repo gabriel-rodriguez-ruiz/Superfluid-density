@@ -7,7 +7,10 @@ Created on Mon Jun 10 17:24:34 2024
 """
 
 import numpy as np
-from SOC_superconductivity import SOCSuperconductorKxKy
+from SOC_superconductivity import (SOCSuperconductorKxKy,
+                                   SOCSparseSuperconductor,
+                                   SOCSuperconductor,
+                                   SOCSuperconductorKx)
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -53,4 +56,7 @@ params = {
 def fermi_function(omega):
     return np.heaviside(-omega, 1)
 
-S = SOCSuperconductorKxKy(k_x=0, k_y=0, **superconductor_params)
+# S = SOCSuperconductorKxKy(k_x=0, k_y=0, **superconductor_params)
+# S = SOCSparseSuperconductor(L_x=2, L_y=2, **superconductor_params)
+# S = SOCSuperconductor(L_x=2, L_y=2, **superconductor_params)
+S = SOCSuperconductorKx(k=0, L_y=2, **superconductor_params)

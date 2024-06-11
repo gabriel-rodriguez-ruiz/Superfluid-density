@@ -172,6 +172,52 @@ class Hamiltonian(object):
                       self._index(1, j, beta)] =\
                         self.hopping_x[alpha, beta]
         return M + M.conj().T
+    def get_Green_function(self, omega:float, Gamma:float):
+        r"""
+        .. math::
+            G_{\mu,\nu}(\omega) = [\omega I- H + i\Gamma I]^{-1}
+        Parameters
+        ----------
+        omega : float
+            Frequency.
+        Gamma : float
+            Damping.
+    
+        Returns
+        -------
+        ndarray
+            Green function matrix.
+        """
+        H = self.matrix
+        I = np.eye(np.shape(H)[0], np.shape(H)[0])
+        return np.linalg.inv((omega+1j*Gamma)*I - H)
+    def get_spectral_density(self, omega_values, Gamma):
+        """ Returns the spectral density.
+    
+        Parameters
+        ----------
+        omega_values : float or ndarray
+            Frequency values.
+        Gamma : float
+            Damping.
+    
+        Returns
+        -------
+        ndarray
+            Spectral density.
+        """
+        if np.size(omega_values)==1:
+            G = self.get_Green_function(omega_values, Gamma)
+            return 1j * (G - G.conj().T)
+        else:
+            rho = np.zeros((len(omega_values), 4 , 4), dtype=complex)
+            for i, omega in enumerate(omega_values):
+                rho[i, :, :] = self.get_spectral_density(omega, Gamma)
+            return rho
+    def get_energy(self):
+        H = self.matrix
+        return np.linalg.eigvalsh(H)
+
         
 class PeriodicHamiltonianInY(Hamiltonian):
     def __init__(self, L_x:int, L_y:int, onsite, hopping_x, hopping_y):
@@ -179,12 +225,14 @@ class PeriodicHamiltonianInY(Hamiltonian):
         self.matrix = super()._get_matrix().toarray()\
                         + super()._get_matrix_periodic_in_y().toarray()
 
+
 class PeriodicHamiltonianInYandX(Hamiltonian):
     def __init__(self, L_x:int, L_y:int, onsite, hopping_x, hopping_y):
         super().__init__(L_x, L_y, onsite, hopping_x, hopping_y)
         self.matrix = super()._get_matrix().toarray()\
                         + super()._get_matrix_periodic_in_y().toarray()\
                         + super()._get_matrix_periodic_in_x().toarray()
+
 
 class SparseHamiltonian(Hamiltonian):
     def __init__(self, L_x:int, L_y:int, onsite, hopping_x, hopping_y):
@@ -194,7 +242,15 @@ class SparseHamiltonian(Hamiltonian):
         self.hopping_x = hopping_x
         self.hopping_y = hopping_y
         self.matrix = self._get_matrix()
-        
+    def get_energy(self, k):
+        """Returns k smallest in magnitude eigenvalues."""
+        H = self.matrix
+        energies = scipy.sparse.linalg.eigsh(H, k,
+                                             sigma=0,
+                                             return_eigenvectors=False)
+        return energies
+
+
 class SparsePeriodicHamiltonianInY(SparseHamiltonian):
     def __init__(self, L_x:int, L_y:int, onsite, hopping_x, hopping_y):
         super().__init__(L_x, L_y, onsite, hopping_x, hopping_y)

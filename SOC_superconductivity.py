@@ -77,6 +77,18 @@ class SOCSuperconductivity():
         return 1/2 * (-self.w_0 * np.kron(tau_z, sigma_0)
                       - 1j*self.Lambda * np.kron(tau_z, sigma_x))
 
+
+class SOCSuperconductor(SOCSuperconductivity, Hamiltonian):
+    def __init__(self, L_x:int, L_y: int, w_0:float, mu:float,
+                 Delta:float, Lambda:float,
+                 B_x:float, B_y:float, B_z:float):
+        SOCSuperconductivity.__init__(self, w_0, mu, Delta, Lambda,
+                                       B_x, B_y, B_z)
+        Hamiltonian.__init__(self, L_x, L_y, self._get_onsite(), 
+                                   self._get_hopping_x(),
+                                   self._get_hopping_y())
+
+
 class SOCSparseSuperconductor(SOCSuperconductivity,
                                   SparseHamiltonian):
     def __init__(self, L_x:int, L_y: int, w_0:float, mu:float,
@@ -88,6 +100,7 @@ class SOCSparseSuperconductor(SOCSuperconductivity,
                                    self._get_hopping_x(),
                                    self._get_hopping_y())
 
+
 class SOCSuperconductorKx(SOCSuperconductivity, Hamiltonian):
     r"""SOC-superconductor for a given k in the x direction and magnetic field.
     
@@ -95,7 +108,7 @@ class SOCSuperconductorKx(SOCSuperconductivity, Hamiltonian):
 
         H = \frac{1}{2}\sum_k H_{ZKMB,k}
         
-        H_{k} = \sum_m^L \vec{c}^\dagger_n\left[ 
+        H_{k} = \sum_n^L \vec{c}^\dagger_n\left[ 
             \xi_k\tau_z\sigma_0 - \Delta \tau_x\sigma_0
             +2\lambda sin(k) \tau_z\sigma_y
             -\tau_0(B_x\sigma_x+B_y\sigma_y+B_z\sigma_z)
