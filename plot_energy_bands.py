@@ -14,14 +14,14 @@ from pathlib import Path
 L_x = 200
 L_y = 200
 w_0 = 10
-Delta = 0.2
-mu = -40
+Delta = 0
+mu = 0
 theta = np.pi/2
 B = 0
 B_x = B * np.cos(theta)
 B_y = B * np.sin(theta)
 B_z = 0
-Lambda = 0#0.56 
+Lambda = 0.56 
 superconductor_params = {"w_0":w_0, "Delta":Delta,
                          "mu":mu, "B_x":B_x, 
                          "B_y":B_y, "Lambda":Lambda,
@@ -41,7 +41,12 @@ for i, k_x in enumerate(k_x_values):
         S = SOCSuperconductorKxKy(k_x=k_x, k_y=0, **superconductor_params)
         E_k_x[i, j] = np.linalg.eigvalsh(S.matrix)[j]
 
+def free_electron(k_x, a, w_0):
+    return a**2 * w_0 * k_x**2 - 4*w_0
+
 fig, ax = plt.subplots()
 ax.plot(k_x_values, E_k_x)
+ax.plot(k_x_values, [free_electron(k_x, a=1, w_0=w_0)
+                     for k_x in k_x_values])
 ax.set_xlabel(r"$k_x$")
 ax.set_ylabel(r"$E(k_x, k_y=0)$")
